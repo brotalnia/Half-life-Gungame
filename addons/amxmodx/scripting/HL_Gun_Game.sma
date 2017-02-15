@@ -7,6 +7,7 @@
 * Description: A Half-Life version of the Counter-Strike plugin.
 *
 * Settings: amx_gungame (0/1) - enables or disables gungame
+*			gg_colorchat (0/1) - query for colorchat support
 *			gg_suicide (0/1) - punish players for suiciding
 *			gg_runspeed (speed) - set default movement speed
 *			gg_frags (level) (frags) - set required frags for level
@@ -43,7 +44,7 @@ new Float:ObjVecs[MAX_OBJ][3]
 new ObjEntsClass[MAX_OBJ][24]
 new ObjEntsId[MAX_OBJ]
 new objectives	// KWo
-new gg_enabled, gg_suicide, gg_runspeed
+new gg_enabled, gg_colorchat, gg_suicide, gg_runspeed
 new g_status
 new g_level[33]=0,g_frags[33], g_lastdeath[33]
 new bool:hasColorChat[MAXSLOTS + 1]
@@ -92,6 +93,7 @@ public plugin_init()
 	
 	gg_enabled = register_cvar("gg_enabled","0")
 	gg_suicide = register_cvar("gg_suicide","0")
+	gg_colorchat = register_cvar("gg_colorchat","1")
 	gg_runspeed = register_cvar("gg_runspeed","400")
 	
 	g_iMsgIDScoreInfo = get_user_msgid("ScoreInfo")
@@ -103,7 +105,10 @@ public plugin_init()
 	
 	// first cvar exists only in won, second one only in steam version of half-life
 	if(cvar_exists("cl_latency") || !cvar_exists("sv_version"))
+	{
 		won = 1
+		set_pcvar_num(gg_colorchat, 0)
+	}
 	
 	mp_teamplay = get_cvar_pointer("mp_teamplay")
 	
@@ -767,7 +772,7 @@ public client_putinserver(player)
 	if (!won)
 		set_task(0.1,"StopMusic", player)
 	// check if player has aghl color chat support
-	if (!is_user_bot(player))
+	if (get_pcvar_num(gg_colorchat) && !is_user_bot(player))
 		set_task(1.0,"QuaryColorChat", player)
 	else
 		hasColorChat[player] = false
